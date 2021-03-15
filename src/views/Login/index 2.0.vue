@@ -27,12 +27,12 @@
                             <el-input v-model.number="ruleForm.code" minlength="6" maxlength="6"></el-input>
                         </el-col>
                         <el-col :span="11">
-                            <el-button type="success" class="block" @click="getSms()">获取验证码</el-button>
+                            <el-button type="success" class="block">获取验证码</el-button>
                         </el-col>
                     </el-row>
                 </el-form-item>
                 <el-form-item>
-                    <el-button :disabled="loginButtonStatus" type="danger" class="block login-btn" @click="submitForm('ruleForm')">{{model === 'login' ? "登录":"注册"}}</el-button>
+                    <el-button type="danger" class="block login-btn" @click="submitForm('ruleForm')">提交</el-button>
                 </el-form-item>
             </el-form>
         </div>
@@ -40,19 +40,12 @@
 </template>
 
 <script>
-import { GetSms } from '@/api/login'
-import axios from 'axios'
-// import { service } from '@/utils/request'
-//使用{}和不使用{}的区别在于：如果使用export default中的default暴露了接口则不使用{}，没有defalut才使用{}
-
-import { reactive, onMounted, ref} from '@vue/composition-api'
 import { stripscript,validateEmail,validatePass,validateVCode } from '@/utils/validate.js';
 export default {
     name: 'login', //当前的名称
-    setup(props, {refs}){ 
-
-         //验证邮箱格式
-        let validateUsername = (rule, value, callback) => {
+    data() {
+        //验证邮箱格式
+        var validateUsername = (rule, value, callback) => {
             if (value === '') {
                 callback(new Error('请输入邮箱'));
             } else if(validateEmail(value)) {
@@ -62,10 +55,10 @@ export default {
             }
         };
         //验证密码
-        let validatePassword = (rule, value, callback) => {
+        var validatePassword = (rule, value, callback) => {
             // 过滤后的数据
-            ruleForm.password = stripscript(value);
-            value = ruleForm.password
+            this.ruleForm.password = stripscript(value);
+            value = this.ruleForm.password
 
             if (value === '') {
                 callback(new Error('请输入密码'));
@@ -76,18 +69,18 @@ export default {
             }
         };
         //验证重复密码
-        let validatePasswords = (rule, value, callback) => {
+        var validatePasswords = (rule, value, callback) => {
             //模块是login的话直接跳过
-            if(model.value === 'login'){
+            if(this.model === 'login'){
                 callback();
             }
             // 过滤后的数据
-            ruleForm.passwords = stripscript(value);
-            value = ruleForm.passwords
+            this.ruleForm.passwords = stripscript(value);
+            value = this.ruleForm.passwords
 
             if (value === '') {
                 callback(new Error('请输入重复密码'));
-            }else if(ruleForm.passwords != ruleForm.password){
+            }else if(this.ruleForm.passwords != this.ruleForm.password){
                 callback(new Error('两次输入的密码不相同'))
             }else if (validatePass(value)) {
                 callback(new Error('密码为6~20位数字+字母!'));
@@ -95,9 +88,9 @@ export default {
                 callback();
             }
         };
-        let validateCode = (rule, value, callback) => {
-            ruleForm.code = stripscript(value);
-            value = ruleForm.code
+        var validateCode = (rule, value, callback) => {
+            this.ruleForm.code = stripscript(value);
+            value = this.ruleForm.code
             if (value === '') {
                 return callback(new Error('请输入验证码'));
             }else if(validateVCode(value)){
@@ -106,118 +99,66 @@ export default {
                 callback();
             }
         };
-        /*
-        * 声明数据
-        */
-        //放置data数据、生命周期、自定义函数
-        //遇到声明的数据是对象类型的就用reactive
-        const menuTab = reactive([
-            {text: '登录', current: true, type: 'login'},
-            {text: '注册', current: false, type: 'register'}
-        ])
-        //表单绑定数据
-        const ruleForm = reactive( {
-            username: '',
-            password: '',
-            code: '',
-            passwords: ''
-        })
-        //表单的验证
-        const rules = ({
-            username: [
-                { validator: validateUsername, trigger: 'blur' }    //失去焦点触发validatePass
-            ],
-            password: [
-                { validator: validatePassword, trigger: 'blur' }
-            ],
-            passwords: [
-                { validator: validatePasswords, trigger: 'blur' }
-            ],
-            code: [
-                { validator: validateCode, trigger: 'blur' }
-            ]
-        })
-        //模块值
-        //遇到声明的数据是基础类型就用ref
-        const model = ref('login')
-        //console.log(model.value)    ref的取值方法
-        //登录按钮禁用状态
-        const loginButtonStatus = reg(true);
-
-        /*
-        * 声明函数，不需要使用this了
-        */
-        const toggleMenu = (data => {
-            //遍历让所有current变为false
-            menuTab.forEach(elem => {
-                elem.current = false
-            });
-            //高光
-            data.current = true
-            //修改模块值
-            model.value = data.type
-        })
-        /**
-         * 获取验证码
-         */
-        const getSms = (() => {
-            //进行提示
-            if(ruleForm.username == ''){
-                return false;
-            }
-            //请求接口
-            GetSms({ username: ruleForm.username });
-        })
-        /**
-         * 提交表单
-         */
-        const submitForm = (formName => {
-            axios.request({
-                method: 'get',
-                url: '/users/12345',
-                data: {
-                    firstName: 'Thomas',
-                    lastName: 'Muller'
-                }
-            }).then(function(response){
-                console.log(response)
-            }).catch(function(){
-                console.log(err)
-            });
-
-            refs[formName].validate((valid) => {
-                if (valid) {
-                    alert('submit!');
-                } else {
-                    console.log('error submit!!');
-                    return false;
-                }
-            })
-        })
-
-        /*
-         * 生命周期
-         */
-        //挂载完成后
-        onMounted(() => {
-            GetSms();
-        })
-
         return {
-            menuTab,
-            model,
-            toggleMenu,
-            submitForm,
-            rules,
-            ruleForm,
-            getSms,
-            loginButtonStatus
+            model: 'login',
+            menuTab: [
+                {text: '登录', current: true    , type: 'login'},
+                {text: '注册', current: false, type: 'register'}
+            ],
+            ruleForm: {
+                username: '',
+                password: '',
+                code: '',
+                passwords: ''
+            },
+            rules: {
+                username: [
+                    { validator: validateUsername, trigger: 'blur' }    //失去焦点触发validatePass
+                ],
+                password: [
+                    { validator: validatePassword, trigger: 'blur' }
+                ],
+                passwords: [
+                    { validator: validatePasswords, trigger: 'blur' }
+                ],
+                code: [
+                    { validator: validateCode, trigger: 'blur' }
+                ]
+            }
         }
     },
     components: { //组件放置组件名称
 
     },
+    created() { //创建完成时
+
+    },
+    mounted() { //挂载完成时
+
+    },
     //定义函数
+    methods: {
+        toggleMenu(data) {
+            //遍历让所有current变为false
+            this.menuTab.forEach(elem => {
+                elem.current = false
+            })
+            //高光
+            data.current = true
+            //修改模块值
+            this.model = data.type
+        },
+        submitForm(formName) {
+            this.$refs[formName].validate((valid) => {
+            if (valid) {
+                alert('submit!');
+            } else {
+                console.log('error submit!!');
+                return false;
+            }
+            });
+        }
+    },
     props: { //子组件接收父组件参数
 
     },

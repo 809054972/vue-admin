@@ -27,12 +27,12 @@
                             <el-input v-model.number="ruleForm.code" minlength="6" maxlength="6"></el-input>
                         </el-col>
                         <el-col :span="11">
-                            <el-button type="success" class="block" @click="getSms()">获取验证码</el-button>
+                            <el-button type="success" class="block">获取验证码</el-button>
                         </el-col>
                     </el-row>
                 </el-form-item>
                 <el-form-item>
-                    <el-button :disabled="loginButtonStatus" type="danger" class="block login-btn" @click="submitForm('ruleForm')">{{model === 'login' ? "登录":"注册"}}</el-button>
+                    <el-button type="danger" class="block login-btn" @click="submitForm('ruleForm')">提交</el-button>
                 </el-form-item>
             </el-form>
         </div>
@@ -40,17 +40,13 @@
 </template>
 
 <script>
-import { GetSms } from '@/api/login'
-import axios from 'axios'
-// import { service } from '@/utils/request'
-//使用{}和不使用{}的区别在于：如果使用export default中的default暴露了接口则不使用{}，没有defalut才使用{}
-
 import { reactive, onMounted, ref} from '@vue/composition-api'
 import { stripscript,validateEmail,validatePass,validateVCode } from '@/utils/validate.js';
 export default {
     name: 'login', //当前的名称
     setup(props, {refs}){ 
-
+        //放置data数据、生命周期、自定义函数
+        
          //验证邮箱格式
         let validateUsername = (rule, value, callback) => {
             if (value === '') {
@@ -109,7 +105,7 @@ export default {
         /*
         * 声明数据
         */
-        //放置data数据、生命周期、自定义函数
+
         //遇到声明的数据是对象类型的就用reactive
         const menuTab = reactive([
             {text: '登录', current: true, type: 'login'},
@@ -141,8 +137,6 @@ export default {
         //遇到声明的数据是基础类型就用ref
         const model = ref('login')
         //console.log(model.value)    ref的取值方法
-        //登录按钮禁用状态
-        const loginButtonStatus = reg(true);
 
         /*
         * 声明函数，不需要使用this了
@@ -157,34 +151,7 @@ export default {
             //修改模块值
             model.value = data.type
         })
-        /**
-         * 获取验证码
-         */
-        const getSms = (() => {
-            //进行提示
-            if(ruleForm.username == ''){
-                return false;
-            }
-            //请求接口
-            GetSms({ username: ruleForm.username });
-        })
-        /**
-         * 提交表单
-         */
         const submitForm = (formName => {
-            axios.request({
-                method: 'get',
-                url: '/users/12345',
-                data: {
-                    firstName: 'Thomas',
-                    lastName: 'Muller'
-                }
-            }).then(function(response){
-                console.log(response)
-            }).catch(function(){
-                console.log(err)
-            });
-
             refs[formName].validate((valid) => {
                 if (valid) {
                     alert('submit!');
@@ -200,7 +167,7 @@ export default {
          */
         //挂载完成后
         onMounted(() => {
-            GetSms();
+
         })
 
         return {
@@ -209,12 +176,13 @@ export default {
             toggleMenu,
             submitForm,
             rules,
-            ruleForm,
-            getSms,
-            loginButtonStatus
+            ruleForm
         }
     },
     components: { //组件放置组件名称
+
+    },
+    mounted() { //挂载完成时
 
     },
     //定义函数
